@@ -31,9 +31,7 @@ bool FindPROG()
 bool FindSTMTS()
 {
     while (FindSTMT())
-    {
-        std::cout << "Found a statement" << std::endl;
-    }
+    {}
 
     // λ
     return true;
@@ -41,12 +39,29 @@ bool FindSTMTS()
 
 bool FindSTMT()
 {
-    if (!FindEXPR()) return false;
+    bool found = FindEXPR();
+    int token = PeekToken();
 
-    if (PeekToken() != ';') return false;
-    AdvanceToken();
+    // EXPR
+    if (!found)
+        RecoverFromError();
+    else
+    {
+        // ;
+        if (token != ';')
+        {
+            Error(";");
+            RecoverFromError();
+        }
+        else
+        {
+            AdvanceToken();
+            std::cout << "Found a statement" << std::endl;
+        }
+    }
 
-    return true;
+    token = PeekToken();
+    return !(token == END || token == 0);
 }
 
 bool FindEXPR()
@@ -58,7 +73,11 @@ bool FindEXPR()
 
         if (!FindEXPR()) return false;
 
-        if (PeekToken() != ')') return false;
+        if (PeekToken() != ')')
+        {
+            Error(")");
+            return false;
+        }
         AdvanceToken();
 
         if (!FindEXPR_P()) return false;
@@ -77,12 +96,20 @@ bool FindEXPR_P()
     // PLUSOP (EXPR) EXPR’
     if (FindPLUSOP())
     {
-        if (PeekToken() != '(') return false;
+        if (PeekToken() != '(')
+        {
+            Error("(");
+            return false;
+        }
         AdvanceToken();
 
         if (!FindEXPR()) return false;
 
-        if (PeekToken() != ')') return false;
+        if (PeekToken() != ')')
+        {
+            Error(")");
+            return false;
+        }
         AdvanceToken();
 
         if (!FindEXPR_P()) return false;
@@ -110,7 +137,11 @@ bool FindTERM()
 
         if (!FindEXPR()) return false;
 
-        if (PeekToken() != ']') return false;
+        if (PeekToken() != ']')
+        {
+            Error("]");
+            return false;
+        }
         AdvanceToken();
 
         if (!FindTERM_P()) return false;
@@ -118,7 +149,11 @@ bool FindTERM()
     // num
     else
     {
-        if (PeekToken() != NUM) return false;
+        if (PeekToken() != NUM)
+        {
+            Error("num");
+            return false;
+        }
         AdvanceToken();
     }
 
@@ -130,22 +165,26 @@ bool FindTERM_P()
     // TIMESOP [EXPR] TERM’
     if (FindTIMESOP())
     {
-        if (PeekToken() != '[') return false;
+        if (PeekToken() != '[')
+        {
+            Error("[");
+            return false;
+        }
         AdvanceToken();
 
         if (!FindEXPR()) return false;
 
-        if (PeekToken() != ']') return false;
+        if (PeekToken() != ']')
+        {
+            Error("]");
+            return false;
+        }
         AdvanceToken();
 
         if (!FindTERM_P()) return false;
     }
-    // λ
-    else
-    {
-        if (PeekToken() != ';') return false;
-    }
 
+    // λ
     return true;
 }
 
@@ -158,3 +197,14 @@ bool FindTIMESOP()
     return true;
 }
 
+
+
+void RecoverFromError()
+{
+    int token = PeekToken();
+    while (!(token == 0 || token == END || token == ';'))
+        token = AdvanceToken();
+
+    if (token == ';')
+        AdvanceToken();
+}

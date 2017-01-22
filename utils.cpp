@@ -7,7 +7,7 @@ static int g_token = -1;
 //*******************************************
 void Error(std::string expecting)
 {
-    std::cout << "Found '" << yytext << "' when expecting a " << expecting;
+    std::cout << "Found '" << yytext << "' when expecting a '" << expecting + "'";
     std::cout << " in line " << yylineno << std::endl;
 }
 //*******************************************

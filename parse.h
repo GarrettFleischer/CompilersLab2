@@ -20,3 +20,5 @@ bool FindPLUSOP();
 bool FindTERM();
 bool FindTERM_P();
 bool FindTIMESOP();
+
+void RecoverFromError();
